@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $pageContext = $pageContext ?? [];
+$site = $site ?? site_config();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -15,6 +16,7 @@ $pageContext = $pageContext ?? [];
     <meta property="og:title" content="<?= e($pageContext['page_title'] ?? 'WIZNET') ?>">
     <meta property="og:description" content="<?= e($pageContext['meta_description'] ?? 'Servicio de Internet vía Antena y Fibra Óptica en Jalisco.') ?>">
     <meta property="og:url" content="https://wiznet.mx<?= $_SERVER['REQUEST_URI'] ?>">
+    <link rel="icon" type="image/png" href="<?= e(asset_url('img/logo.png')) ?>">
     <link rel="stylesheet" href="<?= e(asset_url('css/styles.css')) ?>">
    <!-- Matomo -->
    <script>

@@ -34,11 +34,11 @@ function page_url(string $path): string
     $normalizedPath = ltrim($path, '/');
 
     if ($normalizedPath === 'index.php' || $normalizedPath === 'index') {
-        return site_base_path() . '/inicio';
+        return site_base_path() . '/';
     }
 
     if (str_starts_with($normalizedPath, 'index.php#')) {
-        return site_base_path() . '/inicio' . substr($normalizedPath, strlen('index.php'));
+        return site_base_path() . '/' . ltrim(substr($normalizedPath, strlen('index.php')), '/');
     }
 
     return site_base_path() . '/' . $normalizedPath;

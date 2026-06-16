@@ -27,7 +27,7 @@ function wiznet_url(array $config, string $page = 'home', array $params = []): s
     $query = $params;
 
     if ($page === 'home') {
-        return $basePath . '/inicio';
+        return $basePath . '/';
     }
 
     $basePath .= '/index.php';
