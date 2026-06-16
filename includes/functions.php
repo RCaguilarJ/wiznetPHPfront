@@ -551,6 +551,7 @@ function send_payment_notification_email(array $paymentData): array
 
         return ['success' => true, 'error' => null];
     } catch (PHPMailerException $exception) {
+        error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando registro de pago: ' . $exception->getMessage());
         return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
     }

@@ -376,6 +376,7 @@ function wiznet_send_payment_email(array $record, array $attachment): bool
 
         return true;
     } catch (\PHPMailer\PHPMailer\Exception $exception) {
+        error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando registro de pago compartido: ' . $exception->getMessage());
         return false;
     }
