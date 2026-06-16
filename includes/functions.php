@@ -95,7 +95,7 @@ function current_page_name(): string
 function is_active_page(string $key): bool
 {
     $map = [
-        'home' => ['index.php', 'inicio', ''],
+        'home' => ['index.php', ''],
         'packages' => ['internet-residencial.php', 'internet-comercial.php'],
         'coverage' => 'cobertura.php',
         'support' => 'soporte.php',
