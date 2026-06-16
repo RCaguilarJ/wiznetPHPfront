@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS website_requests (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    folio VARCHAR(40) NOT NULL,
+    request_type VARCHAR(30) NOT NULL,
+    service_type VARCHAR(50) DEFAULT NULL,
+    office VARCHAR(80) DEFAULT NULL,
+    client_name VARCHAR(150) NOT NULL,
+    client_number VARCHAR(50) DEFAULT NULL,
+    email VARCHAR(150) DEFAULT NULL,
+    phone VARCHAR(50) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    subject VARCHAR(180) DEFAULT NULL,
+    message TEXT DEFAULT NULL,
+    plan_name VARCHAR(150) DEFAULT NULL,
+    attachment_path VARCHAR(255) DEFAULT NULL,
+    status VARCHAR(40) NOT NULL DEFAULT 'Nuevo',
+    metadata_json LONGTEXT DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_request_type (request_type),
+    INDEX idx_created_at (created_at),
+    INDEX idx_client_number (client_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+define('DB_HOST', 'COMPLETAR_DESPUES_DE_CREAR_BD_EN_CPANEL');
+define('DB_USER', 'COMPLETAR_DESPUES_DE_CREAR_BD_EN_CPANEL');
+define('DB_PASS', 'COMPLETAR_DESPUES_DE_CREAR_BD_EN_CPANEL');
+define('DB_NAME', 'COMPLETAR_DESPUES_DE_CREAR_BD_EN_CPANEL');
+define('DB_PORT', 3306);
+define('DB_CHARSET', 'utf8mb4');
