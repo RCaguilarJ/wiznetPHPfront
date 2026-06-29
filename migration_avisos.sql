@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS avisos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    tipo ENUM('advertencia', 'recomendacion') NOT NULL,
+    contenido TEXT NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    orden INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
