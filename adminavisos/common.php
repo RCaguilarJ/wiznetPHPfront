@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/php_compat.php';
+
 $avisosDbCandidates = [
     __DIR__ . '/../../includes/db.php',
     __DIR__ . '/../includes/db.php',
@@ -76,7 +78,7 @@ function avisos_admin_url(string $path = 'dashboard.php'): string
     return avisos_base_path() . '/adminavisos/' . $normalizedPath;
 }
 
-function avisos_redirect(string $path): never
+function avisos_redirect(string $path): void
 {
     header('Location: ' . avisos_admin_url($path), true, 303);
     exit;

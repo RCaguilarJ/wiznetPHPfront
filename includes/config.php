@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/php_compat.php';
+
 function wiznet_load_env(string $path): void
 {
     if (!is_readable($path)) {

@@ -46,7 +46,7 @@ function wiznet_escape(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-function wiznet_active(array|string $targets, string $currentPage): string
+function wiznet_active($targets, string $currentPage): string
 {
     $targets = (array) $targets;
 
@@ -428,7 +428,7 @@ function wiznet_persist_request(?mysqli $db, array $record, string $fallbackPath
     return file_put_contents($fallbackPath, $logLine . PHP_EOL, FILE_APPEND | LOCK_EX) !== false;
 }
 
-function wiznet_redirect(array $config, string $page, array $params = []): never
+function wiznet_redirect(array $config, string $page, array $params = []): void
 {
     header('Location: ' . wiznet_url($config, $page, $params));
     exit;

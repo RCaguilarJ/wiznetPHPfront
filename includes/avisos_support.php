@@ -12,7 +12,7 @@ function wiznet_avisos_db_config(): array
         return $dbConfig;
     }
 
-    $config = require __DIR__ . '/config.php';
+    $config = require_once __DIR__ . '/config.php';
     $dbConfig = $config['db'] ?? [];
 
     foreach (['host', 'port', 'name', 'user', 'pass', 'charset'] as $key) {

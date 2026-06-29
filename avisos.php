@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/avisos_support.php';
+require_once __DIR__ . '/includes/avisos_defaults.php';
 
 $pageContext = [
     'page_title' => 'Avisos',
@@ -14,13 +15,13 @@ $pageContext = [
 $groupLabels = [
     'advertencia' => [
         'title' => 'Advertencias',
-        'icon' => '✖',
+        'icon' => '&#10006;',
         'icon_class' => 'avisos-item__icon--warning',
         'empty' => 'No hay advertencias activas por el momento.',
     ],
     'recomendacion' => [
         'title' => 'Recomendaciones',
-        'icon' => '✔',
+        'icon' => '&#10004;',
         'icon_class' => 'avisos-item__icon--recommendation',
         'empty' => 'No hay recomendaciones activas por el momento.',
     ],
@@ -30,7 +31,7 @@ $avisosPorTipo = [
     'advertencia' => [],
     'recomendacion' => [],
 ];
-$loadError = null;
+$loadSource = 'database';
 
 try {
     $pdo = wiznet_avisos_pdo();
@@ -52,7 +53,13 @@ try {
         $avisosPorTipo[$tipo][] = $aviso;
     }
 } catch (Throwable $exception) {
-    $loadError = 'No fue posible cargar los avisos en este momento.';
+    $avisosPorTipo = wiznet_default_avisos();
+    $loadSource = 'defaults';
+}
+
+if ($avisosPorTipo['advertencia'] === [] && $avisosPorTipo['recomendacion'] === []) {
+    $avisosPorTipo = wiznet_default_avisos();
+    $loadSource = 'defaults';
 }
 
 require __DIR__ . '/includes/header.php';
@@ -194,43 +201,43 @@ render_page_header('Avisos', 'Avisos');
         <?php render_section_title('Avisos y recomendaciones'); ?>
         <p class="section-subtitle">Consulta aqui los mensajes importantes y las mejores practicas para tu servicio.</p>
 
-        <?php if ($loadError !== null): ?>
-            <div class="alert alert-error"><?= e($loadError) ?></div>
-        <?php else: ?>
-            <div class="avisos-callout">
-                <div class="accordion avisos-accordion">
-                    <?php $groupIndex = 0; ?>
-                    <?php foreach ($groupLabels as $tipo => $config): ?>
-                        <details <?= $groupIndex === 0 ? 'open' : '' ?>>
-                            <summary>
-                                <span class="avisos-summary__title">
-                                    <span class="avisos-item__icon <?= e($config['icon_class']) ?>" aria-hidden="true"><?= e($config['icon']) ?></span>
-                                    <span><?= e($config['title']) ?></span>
-                                </span>
-                                <span class="avisos-summary__badge"><?= count($avisosPorTipo[$tipo]) ?></span>
-                            </summary>
-                            <div class="accordion__content">
-                                <?php if ($avisosPorTipo[$tipo] === []): ?>
-                                    <p class="avisos-empty"><?= e($config['empty']) ?></p>
-                                <?php else: ?>
-                                    <ul class="avisos-list">
-                                        <?php foreach ($avisosPorTipo[$tipo] as $aviso): ?>
-                                            <li class="avisos-item">
-                                                <span class="avisos-item__icon <?= e($config['icon_class']) ?>" aria-hidden="true"><?= e($config['icon']) ?></span>
-                                                <div>
-                                                    <h3><?= e($aviso['titulo']) ?></h3>
-                                                    <p><?= nl2br(e($aviso['contenido'])) ?></p>
-                                                </div>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php endif; ?>
-                            </div>
-                        </details>
-                        <?php $groupIndex++; ?>
-                    <?php endforeach; ?>
-                </div>
+        <div class="avisos-callout">
+            <div class="accordion avisos-accordion">
+                <?php $groupIndex = 0; ?>
+                <?php foreach ($groupLabels as $tipo => $config): ?>
+                    <details <?= $groupIndex === 0 ? 'open' : '' ?>>
+                        <summary>
+                            <span class="avisos-summary__title">
+                                <span class="avisos-item__icon <?= e($config['icon_class']) ?>" aria-hidden="true"><?= $config['icon'] ?></span>
+                                <span><?= e($config['title']) ?></span>
+                            </span>
+                            <span class="avisos-summary__badge"><?= count($avisosPorTipo[$tipo]) ?></span>
+                        </summary>
+                        <div class="accordion__content">
+                            <?php if ($avisosPorTipo[$tipo] === []): ?>
+                                <p class="avisos-empty"><?= e($config['empty']) ?></p>
+                            <?php else: ?>
+                                <ul class="avisos-list">
+                                    <?php foreach ($avisosPorTipo[$tipo] as $aviso): ?>
+                                        <li class="avisos-item">
+                                            <span class="avisos-item__icon <?= e($config['icon_class']) ?>" aria-hidden="true"><?= $config['icon'] ?></span>
+                                            <div>
+                                                <h3><?= e($aviso['titulo']) ?></h3>
+                                                <p><?= nl2br(e($aviso['contenido'])) ?></p>
+                                            </div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </div>
+                    </details>
+                    <?php $groupIndex++; ?>
+                <?php endforeach; ?>
             </div>
+        </div>
+
+        <?php if ($loadSource === 'defaults'): ?>
+            <p class="section-subtitle">Se muestran avisos predeterminados mientras se cargan los registros del panel.</p>
         <?php endif; ?>
     </div>
 </section>
