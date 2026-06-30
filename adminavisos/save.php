@@ -11,6 +11,7 @@ if (avisos_request_method() !== 'POST') {
 
 avisos_require_csrf($_POST['csrf_token'] ?? null);
 
+$redirectPath = avisos_sanitize_return_path($_POST['redirect_to'] ?? 'dashboard.php');
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $titulo = avisos_normalize_string((string) ($_POST['titulo'] ?? ''));
 $tipo = avisos_normalize_string((string) ($_POST['tipo'] ?? ''));
@@ -52,41 +53,15 @@ if ($errors !== []) {
         'errors' => $errors,
     ]);
     avisos_set_flash('error', 'Revisa los datos del formulario.');
-    avisos_redirect('dashboard.php');
+    avisos_redirect($redirectPath);
 }
 
 try {
-    $pdo = avisos_pdo();
-
     if ($id !== false && $id !== null) {
-        $statement = $pdo->prepare(
-            'UPDATE avisos
-            SET titulo = :titulo, tipo = :tipo, contenido = :contenido, activo = :activo, orden = :orden
-            WHERE id = :id'
-        );
-        $statement->execute([
-            'titulo' => $titulo,
-            'tipo' => $tipo,
-            'contenido' => $contenido,
-            'activo' => $activo,
-            'orden' => (int) $orden,
-            'id' => $id,
-        ]);
-
+        wiznet_avisos_save((int) $id, $titulo, $tipo, $contenido, $activo, (int) $orden);
         avisos_set_flash('success', 'Aviso actualizado correctamente.');
     } else {
-        $statement = $pdo->prepare(
-            'INSERT INTO avisos (titulo, tipo, contenido, activo, orden)
-            VALUES (:titulo, :tipo, :contenido, :activo, :orden)'
-        );
-        $statement->execute([
-            'titulo' => $titulo,
-            'tipo' => $tipo,
-            'contenido' => $contenido,
-            'activo' => $activo,
-            'orden' => (int) $orden,
-        ]);
-
+        wiznet_avisos_save(null, $titulo, $tipo, $contenido, $activo, (int) $orden);
         avisos_set_flash('success', 'Aviso creado correctamente.');
     }
 } catch (Throwable $exception) {
@@ -97,4 +72,4 @@ try {
     avisos_set_flash('error', 'No fue posible guardar el aviso.');
 }
 
-avisos_redirect('dashboard.php');
+avisos_redirect($redirectPath);

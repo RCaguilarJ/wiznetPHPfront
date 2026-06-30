@@ -4,24 +4,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/php_compat.php';
 
-$avisosDbCandidates = [
-    __DIR__ . '/../../includes/db.php',
-    __DIR__ . '/../includes/db.php',
-];
-
-$avisosDbLoaded = false;
-foreach ($avisosDbCandidates as $avisosDbPath) {
-    if (is_file($avisosDbPath)) {
-        require_once $avisosDbPath;
-        $avisosDbLoaded = true;
-        break;
-    }
-}
-
-if (!$avisosDbLoaded) {
-    throw new RuntimeException('No se encontro el archivo includes/db.php requerido por adminavisos.');
-}
-
 require_once __DIR__ . '/../includes/avisos_support.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -82,6 +64,32 @@ function avisos_redirect(string $path): void
 {
     header('Location: ' . avisos_admin_url($path), true, 303);
     exit;
+}
+
+function avisos_sanitize_return_path(?string $path, string $fallback = 'dashboard.php'): string
+{
+    if (!is_string($path) || trim($path) === '') {
+        return $fallback;
+    }
+
+    $normalizedPath = ltrim(trim($path), '/');
+    if ($normalizedPath === '' || preg_match('/^[a-z][a-z0-9+\-.]*:/i', $normalizedPath)) {
+        return $fallback;
+    }
+
+    $parsed = parse_url($normalizedPath);
+    if ($parsed === false) {
+        return $fallback;
+    }
+
+    $pathPart = (string) ($parsed['path'] ?? '');
+    if ($pathPart !== 'dashboard.php') {
+        return $fallback;
+    }
+
+    $query = isset($parsed['query']) && $parsed['query'] !== '' ? '?' . $parsed['query'] : '';
+
+    return $pathPart . $query;
 }
 
 function avisos_request_method(): string
@@ -208,9 +216,4 @@ function avisos_normalize_multiline(string $value): string
 function avisos_allowed_types(): array
 {
     return ['advertencia', 'recomendacion'];
-}
-
-function avisos_pdo(): PDO
-{
-    return wiznet_avisos_pdo();
 }

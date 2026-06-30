@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/avisos_support.php';
-require_once __DIR__ . '/includes/avisos_defaults.php';
 
 $pageContext = [
     'page_title' => 'Avisos',
@@ -32,18 +31,10 @@ $avisosPorTipo = [
     'recomendacion' => [],
 ];
 $loadSource = 'database';
+$loadErrorMessage = null;
 
 try {
-    $pdo = wiznet_avisos_pdo();
-    $statement = $pdo->prepare(
-        "SELECT id, titulo, tipo, contenido
-        FROM avisos
-        WHERE activo = :activo
-        ORDER BY CASE WHEN tipo = 'advertencia' THEN 0 ELSE 1 END, orden ASC, created_at DESC"
-    );
-    $statement->execute(['activo' => 1]);
-
-    foreach ($statement->fetchAll() as $aviso) {
+    foreach (wiznet_avisos_fetch_public() as $aviso) {
         $tipo = $aviso['tipo'];
 
         if (!isset($avisosPorTipo[$tipo])) {
@@ -53,13 +44,9 @@ try {
         $avisosPorTipo[$tipo][] = $aviso;
     }
 } catch (Throwable $exception) {
-    $avisosPorTipo = wiznet_default_avisos();
-    $loadSource = 'defaults';
-}
-
-if ($avisosPorTipo['advertencia'] === [] && $avisosPorTipo['recomendacion'] === []) {
-    $avisosPorTipo = wiznet_default_avisos();
-    $loadSource = 'defaults';
+    $loadSource = 'error';
+    $loadErrorMessage = 'No fue posible cargar los avisos en este momento.';
+    error_log('Error cargando avisos publicos: ' . $exception->getMessage());
 }
 
 require __DIR__ . '/includes/header.php';
@@ -236,8 +223,8 @@ render_page_header('Avisos', 'Avisos');
             </div>
         </div>
 
-        <?php if ($loadSource === 'defaults'): ?>
-            <p class="section-subtitle">Se muestran avisos predeterminados mientras se cargan los registros del panel.</p>
+        <?php if ($loadSource === 'error'): ?>
+            <p class="section-subtitle"><?= e($loadErrorMessage ?? 'No fue posible cargar los avisos en este momento.') ?></p>
         <?php endif; ?>
     </div>
 </section>
