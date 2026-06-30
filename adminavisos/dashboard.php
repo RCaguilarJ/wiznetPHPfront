@@ -693,18 +693,6 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .col-order,
-        .col-status {
-            width: 104px;
-        }
-
-        .col-type {
-            width: 76px;
-        }
-
-        .col-created {
-            width: 132px;
-        }
-
         .title-cell__title {
             display: block;
             margin-bottom: 0.25rem;
@@ -767,17 +755,6 @@ $editFormErrors = $isEditing ? $formErrors : [];
             white-space: nowrap;
         }
 
-        .badge--compact,
-        .status--compact {
-            min-width: 14px;
-            width: 14px;
-            height: 14px;
-            padding: 0;
-            border-radius: 999px;
-            font-size: 0;
-            line-height: 0;
-        }
-
         .status--active {
             color: #0f7a2e;
             background: var(--green-100);
@@ -796,14 +773,6 @@ $editFormErrors = $isEditing ? $formErrors : [];
         .badge--recommendation {
             color: #0f7a2e;
             background: var(--green-100);
-        }
-
-        .cell-indicator {
-            text-align: center;
-        }
-
-        .created-cell {
-            white-space: nowrap;
         }
 
         .actions {
@@ -1266,11 +1235,8 @@ $editFormErrors = $isEditing ? $formErrors : [];
                                     <tr>
                                         <th class="col-id">ID</th>
                                         <th class="col-title">Titulo</th>
-                                        <th class="col-type">Tipo</th>
                                         <th>Contenido</th>
                                         <th class="col-order">Orden</th>
-                                        <th class="col-status">Estado</th>
-                                        <th class="col-created">Creado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -1301,25 +1267,10 @@ $editFormErrors = $isEditing ? $formErrors : [];
                                                 </span>
                                                 <span class="title-cell__meta">Prioridad <?= (int) $aviso['orden'] ?></span>
                                             </td>
-                                            <td class="cell-indicator">
-                                                <span
-                                                    class="badge badge--compact <?= $aviso['tipo'] === 'advertencia' ? 'badge--warning' : 'badge--recommendation' ?>"
-                                                    title="<?= avisos_e($aviso['tipo'] === 'advertencia' ? 'Advertencia' : 'Recomendación') ?>"
-                                                    aria-label="<?= avisos_e($aviso['tipo'] === 'advertencia' ? 'Advertencia' : 'Recomendación') ?>"
-                                                ></span>
-                                            </td>
                                             <td>
                                                 <span class="content-preview"><?= avisos_e(avisos_preview((string) $aviso['contenido'])) ?></span>
                                             </td>
                                             <td><?= (int) $aviso['orden'] ?></td>
-                                            <td class="cell-indicator">
-                                                <span
-                                                    class="status status--compact <?= (int) $aviso['activo'] === 1 ? 'status--active' : 'status--inactive' ?>"
-                                                    title="<?= avisos_e((int) $aviso['activo'] === 1 ? 'Activo' : 'Inactivo') ?>"
-                                                    aria-label="<?= avisos_e((int) $aviso['activo'] === 1 ? 'Activo' : 'Inactivo') ?>"
-                                                ></span>
-                                            </td>
-                                            <td class="created-cell"><?= avisos_e(avisos_format_datetime((string) $aviso['created_at'])) ?></td>
                                             <td>
                                                 <div class="actions">
                                                     <a href="<?= avisos_e($editPath) ?>"><?= (int) $aviso['activo'] === 1 ? 'Editar publicado' : 'Editar' ?></a>
