@@ -94,15 +94,6 @@ function avisos_text_lower(string $value): string
     return function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
 }
 
-function avisos_format_datetime(string $value): string
-{
-    try {
-        return (new DateTimeImmutable($value))->format('d/m/Y H:i');
-    } catch (Throwable $exception) {
-        return $value;
-    }
-}
-
 function avisos_render_preview_html(array $formValues): string
 {
     $title = trim((string) ($formValues['titulo'] ?? ''));
