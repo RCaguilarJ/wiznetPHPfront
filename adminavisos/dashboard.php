@@ -625,6 +625,8 @@ $editFormErrors = $isEditing ? $formErrors : [];
 
         .table-wrap {
             overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
             border: 1px solid var(--border);
             border-radius: 16px;
             background: #fff;
@@ -651,13 +653,35 @@ $editFormErrors = $isEditing ? $formErrors : [];
         th {
             position: sticky;
             top: 0;
-            z-index: 1;
+            z-index: 3;
             background: #f8fbff;
             color: var(--ink-700);
             font-size: 0.8rem;
             font-weight: 800;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+        }
+
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+        }
+
+        th:first-child {
+            z-index: 4;
+            background: #f1f6ff;
+            box-shadow: 1px 0 0 #e4ebf5;
+        }
+
+        td:first-child {
+            z-index: 2;
+            background: #fff;
+            box-shadow: 1px 0 0 #edf1f6;
+        }
+
+        tbody tr:hover td:first-child {
+            background: rgba(33, 70, 156, 0.03);
         }
 
         .col-id {
@@ -673,8 +697,12 @@ $editFormErrors = $isEditing ? $formErrors : [];
             width: 104px;
         }
 
+        .col-type {
+            width: 76px;
+        }
+
         .col-created {
-            width: 150px;
+            width: 132px;
         }
 
         .title-cell__title {
@@ -739,6 +767,17 @@ $editFormErrors = $isEditing ? $formErrors : [];
             white-space: nowrap;
         }
 
+        .badge--compact,
+        .status--compact {
+            min-width: 14px;
+            width: 14px;
+            height: 14px;
+            padding: 0;
+            border-radius: 999px;
+            font-size: 0;
+            line-height: 0;
+        }
+
         .status--active {
             color: #0f7a2e;
             background: var(--green-100);
@@ -757,6 +796,14 @@ $editFormErrors = $isEditing ? $formErrors : [];
         .badge--recommendation {
             color: #0f7a2e;
             background: var(--green-100);
+        }
+
+        .cell-indicator {
+            text-align: center;
+        }
+
+        .created-cell {
+            white-space: nowrap;
         }
 
         .actions {
@@ -1219,7 +1266,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                                     <tr>
                                         <th class="col-id">ID</th>
                                         <th class="col-title">Titulo</th>
-                                        <th>Tipo</th>
+                                        <th class="col-type">Tipo</th>
                                         <th>Contenido</th>
                                         <th class="col-order">Orden</th>
                                         <th class="col-status">Estado</th>
@@ -1254,21 +1301,25 @@ $editFormErrors = $isEditing ? $formErrors : [];
                                                 </span>
                                                 <span class="title-cell__meta">Prioridad <?= (int) $aviso['orden'] ?></span>
                                             </td>
-                                            <td>
-                                                <span class="badge <?= $aviso['tipo'] === 'advertencia' ? 'badge--warning' : 'badge--recommendation' ?>">
-                                                    <?= avisos_e((string) $aviso['tipo']) ?>
-                                                </span>
+                                            <td class="cell-indicator">
+                                                <span
+                                                    class="badge badge--compact <?= $aviso['tipo'] === 'advertencia' ? 'badge--warning' : 'badge--recommendation' ?>"
+                                                    title="<?= avisos_e($aviso['tipo'] === 'advertencia' ? 'Advertencia' : 'Recomendación') ?>"
+                                                    aria-label="<?= avisos_e($aviso['tipo'] === 'advertencia' ? 'Advertencia' : 'Recomendación') ?>"
+                                                ></span>
                                             </td>
                                             <td>
                                                 <span class="content-preview"><?= avisos_e(avisos_preview((string) $aviso['contenido'])) ?></span>
                                             </td>
                                             <td><?= (int) $aviso['orden'] ?></td>
-                                            <td>
-                                                <span class="status <?= (int) $aviso['activo'] === 1 ? 'status--active' : 'status--inactive' ?>">
-                                                    <?= (int) $aviso['activo'] === 1 ? 'Activo' : 'Inactivo' ?>
-                                                </span>
+                                            <td class="cell-indicator">
+                                                <span
+                                                    class="status status--compact <?= (int) $aviso['activo'] === 1 ? 'status--active' : 'status--inactive' ?>"
+                                                    title="<?= avisos_e((int) $aviso['activo'] === 1 ? 'Activo' : 'Inactivo') ?>"
+                                                    aria-label="<?= avisos_e((int) $aviso['activo'] === 1 ? 'Activo' : 'Inactivo') ?>"
+                                                ></span>
                                             </td>
-                                            <td><?= avisos_e(avisos_format_datetime((string) $aviso['created_at'])) ?></td>
+                                            <td class="created-cell"><?= avisos_e(avisos_format_datetime((string) $aviso['created_at'])) ?></td>
                                             <td>
                                                 <div class="actions">
                                                     <a href="<?= avisos_e($editPath) ?>"><?= (int) $aviso['activo'] === 1 ? 'Editar publicado' : 'Editar' ?></a>
