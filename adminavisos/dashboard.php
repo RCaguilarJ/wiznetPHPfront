@@ -247,6 +247,10 @@ $editFormErrors = $isEditing ? $formErrors : [];
             --border-strong: #c5d3e6;
             --shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
             --radius: 18px;
+            --shell-max: 1720px;
+            --shell-gutter: clamp(1rem, 2vw, 2rem);
+            --layout-gap: clamp(1rem, 1.4vw, 1.35rem);
+            --aside-width: clamp(360px, 26vw, 420px);
         }
 
         * {
@@ -279,7 +283,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .shell {
-            width: min(1380px, calc(100% - 2rem));
+            width: min(var(--shell-max), calc(100% - (var(--shell-gutter) * 2)));
             margin: 0 auto;
             padding: 1.5rem 0 2.5rem;
         }
@@ -322,6 +326,11 @@ $editFormErrors = $isEditing ? $formErrors : [];
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
+        }
+
+        .topbar__actions,
+        .filters__actions {
+            justify-content: flex-end;
         }
 
         .button,
@@ -371,11 +380,11 @@ $editFormErrors = $isEditing ? $formErrors : [];
         .stats-grid,
         .grid {
             display: grid;
-            gap: 1rem;
+            gap: var(--layout-gap);
         }
 
         .stats-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
             margin-bottom: 1rem;
         }
 
@@ -414,7 +423,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .grid {
-            grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.95fr);
+            grid-template-columns: minmax(0, 1fr) minmax(340px, var(--aside-width));
             align-items: start;
         }
 
@@ -508,10 +517,14 @@ $editFormErrors = $isEditing ? $formErrors : [];
 
         .filters {
             display: grid;
-            grid-template-columns: minmax(240px, 1.45fr) repeat(2, minmax(170px, 0.8fr)) auto;
+            grid-template-columns: minmax(260px, 1.7fr) repeat(2, minmax(180px, 0.82fr)) auto;
             gap: 0.85rem;
             align-items: end;
             margin-bottom: 1rem;
+        }
+
+        .filters__actions {
+            align-self: end;
         }
 
         .field {
@@ -615,7 +628,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .table-wrap {
-            overflow-x: auto;
+            overflow-x: hidden;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
             border: 1px solid var(--border);
@@ -625,8 +638,9 @@ $editFormErrors = $isEditing ? $formErrors : [];
 
         table {
             width: 100%;
-            min-width: 980px;
+            min-width: 0;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         th,
@@ -680,7 +694,22 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .col-title {
-            width: 240px;
+            width: 28%;
+        }
+
+        th:nth-child(3),
+        td:nth-child(3) {
+            width: 42%;
+        }
+
+        th:nth-child(4),
+        td:nth-child(4) {
+            width: 88px;
+        }
+
+        th:nth-child(5),
+        td:nth-child(5) {
+            width: 152px;
         }
 
         .col-order,
@@ -689,6 +718,10 @@ $editFormErrors = $isEditing ? $formErrors : [];
             margin-bottom: 0.25rem;
             font-weight: 700;
             color: var(--ink-950);
+        }
+
+        .title-cell__title {
+            overflow-wrap: anywhere;
         }
 
         .title-cell__meta {
@@ -705,10 +738,11 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .content-preview {
-            display: inline-block;
-            max-width: 32ch;
+            display: block;
+            max-width: none;
             color: var(--ink-700);
             line-height: 1.55;
+            overflow-wrap: anywhere;
         }
 
         .mini-badge {
@@ -767,18 +801,21 @@ $editFormErrors = $isEditing ? $formErrors : [];
         }
 
         .actions {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 0.45rem;
         }
 
         .actions a {
+            width: 100%;
             padding: 0.56rem 0.8rem;
             border-radius: 10px;
             font-size: 0.87rem;
             font-weight: 800;
             color: #fff;
             background: var(--blue-800);
+            text-align: center;
+            white-space: nowrap;
         }
 
         .actions .delete-link {
@@ -833,6 +870,21 @@ $editFormErrors = $isEditing ? $formErrors : [];
         .form-panel {
             position: sticky;
             top: 1rem;
+        }
+
+        @media (min-width: 1500px) {
+            .grid {
+                grid-template-columns: minmax(0, 1fr) 400px;
+            }
+
+            .panel__header,
+            .panel__body {
+                padding-inline: 1.4rem;
+            }
+
+            .col-title {
+                width: 29%;
+            }
         }
 
         .helper-card {
@@ -1041,9 +1093,19 @@ $editFormErrors = $isEditing ? $formErrors : [];
             }
         }
 
-        @media (max-width: 1120px) {
-            .stats-grid {
+        @media (max-width: 1360px) {
+            .filters {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filters__actions {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 1120px) {
+            .table-wrap {
+                overflow-x: auto;
             }
 
             .grid {
@@ -1061,6 +1123,20 @@ $editFormErrors = $isEditing ? $formErrors : [];
             .preview-panel {
                 position: static;
             }
+
+            table {
+                min-width: 860px;
+                table-layout: auto;
+            }
+
+            .actions {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .actions a {
+                width: auto;
+            }
         }
 
         @media (max-width: 860px) {
@@ -1070,6 +1146,11 @@ $editFormErrors = $isEditing ? $formErrors : [];
 
             .pagination {
                 align-items: flex-start;
+            }
+
+            .topbar__actions,
+            .filters__actions {
+                justify-content: flex-start;
             }
         }
 
@@ -1083,9 +1164,17 @@ $editFormErrors = $isEditing ? $formErrors : [];
                 flex-direction: column;
             }
 
+            .topbar__actions {
+                width: 100%;
+            }
+
             .stats-grid,
             .form-grid {
                 grid-template-columns: 1fr;
+            }
+
+            table {
+                min-width: 760px;
             }
 
             .panel__header,
