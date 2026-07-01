@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/common.php';
 avisos_require_auth();
 
-$redirectPath = avisos_sanitize_return_path($_GET['return'] ?? 'dashboard.php');
+$redirectPath = avisos_sanitize_return_path($_GET['return'] ?? 'dashboard');
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 avisos_require_csrf($_GET['token'] ?? null);
 

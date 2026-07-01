@@ -47,7 +47,7 @@ try {
 
         if ($editingAviso === null) {
             avisos_set_flash('error', 'El aviso que intentaste editar no existe.');
-            avisos_redirect('dashboard.php');
+            avisos_redirect('dashboard');
         }
 
         $formValues = [
@@ -147,7 +147,7 @@ function avisos_dashboard_query(array $params): string
 
 function avisos_dashboard_path(array $params = []): string
 {
-    return 'dashboard.php' . avisos_dashboard_query($params);
+    return 'dashboard' . avisos_dashboard_query($params);
 }
 
 $stats = [
@@ -1114,7 +1114,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
             <div class="topbar__actions">
                 <a class="button-link button-link--secondary" href="<?= avisos_e($listReturnPath) ?>">Nuevo aviso</a>
                 <a class="button-link" href="<?= avisos_e(avisos_base_path() . '/avisos.php') ?>" target="_blank" rel="noopener">Ver pagina publica</a>
-                <a class="button-link button-link--danger" href="<?= avisos_e(avisos_admin_url('logout.php')) ?>">Salir</a>
+                <a class="button-link button-link--danger" href="<?= avisos_e(avisos_admin_url('logout')) ?>">Salir</a>
             </div>
         </header>
 
@@ -1165,7 +1165,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                     </div>
                 </div>
                 <div class="panel__body">
-                    <form method="get" action="<?= avisos_e(avisos_admin_url('dashboard.php')) ?>" class="filters">
+                    <form method="get" action="<?= avisos_e(avisos_admin_url('dashboard')) ?>" class="filters">
                         <label class="field">
                             <span class="field__label">Buscar</span>
                             <input type="text" name="q" value="<?= avisos_e($searchQuery) ?>" placeholder="Titulo, contenido o ID">
@@ -1195,7 +1195,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                         <div class="filters__actions">
                             <button class="button" type="submit">Aplicar</button>
                             <?php if ($filtersActive): ?>
-                                <a class="button-link button-link--ghost" href="<?= avisos_e(avisos_admin_url('dashboard.php')) ?>">Limpiar</a>
+                                <a class="button-link button-link--ghost" href="<?= avisos_e(avisos_admin_url('dashboard')) ?>">Limpiar</a>
                             <?php endif; ?>
                         </div>
                     </form>
@@ -1215,7 +1215,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                             <p><?= $filtersActive ? 'Prueba ajustando o limpiando los filtros actuales.' : 'Todavia no hay avisos registrados.' ?></p>
                             <?php if ($filtersActive): ?>
                                 <div class="form-actions" style="justify-content:center; margin-top:1rem;">
-                                    <a class="button-link button-link--ghost" href="<?= avisos_e(avisos_admin_url('dashboard.php')) ?>">Quitar filtros</a>
+                                    <a class="button-link button-link--ghost" href="<?= avisos_e(avisos_admin_url('dashboard')) ?>">Quitar filtros</a>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -1241,7 +1241,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                                             'page' => $currentPage,
                                             'edit' => (int) $aviso['id'],
                                         ]);
-                                        $deletePath = 'delete.php?' . http_build_query([
+                                        $deletePath = 'delete?' . http_build_query([
                                             'id' => (int) $aviso['id'],
                                             'token' => avisos_csrf_token(),
                                             'return' => $listReturnPath,
@@ -1321,7 +1321,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                         </div>
                     </div>
                     <div class="panel__body">
-                        <form method="post" action="<?= avisos_e(avisos_admin_url('save.php')) ?>">
+                        <form method="post" action="<?= avisos_e(avisos_admin_url('save')) ?>">
                             <input type="hidden" name="csrf_token" value="<?= avisos_e(avisos_csrf_token()) ?>">
                             <input type="hidden" name="id" value="">
                             <input type="hidden" name="redirect_to" value="<?= avisos_e($listReturnPath) ?>">
@@ -1402,7 +1402,7 @@ $editFormErrors = $isEditing ? $formErrors : [];
                     </div>
                     <div class="modal__body">
                         <div class="modal__grid">
-                            <form method="post" action="<?= avisos_e(avisos_admin_url('save.php')) ?>">
+                            <form method="post" action="<?= avisos_e(avisos_admin_url('save')) ?>">
                                 <input type="hidden" name="csrf_token" value="<?= avisos_e(avisos_csrf_token()) ?>">
                                 <input type="hidden" name="id" value="<?= avisos_e((string) $editFormValues['id']) ?>">
                                 <input type="hidden" name="redirect_to" value="<?= avisos_e($listReturnPath) ?>">

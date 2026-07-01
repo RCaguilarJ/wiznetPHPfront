@@ -6,5 +6,5 @@ require_once __DIR__ . '/common.php';
 avisos_require_auth();
 
 avisos_logout_user();
-header('Location: ' . avisos_admin_url('login.php'), true, 303);
+header('Location: ' . avisos_admin_url('login'), true, 303);
 exit;

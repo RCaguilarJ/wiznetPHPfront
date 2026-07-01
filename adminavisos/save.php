@@ -6,12 +6,12 @@ require_once __DIR__ . '/common.php';
 avisos_require_auth();
 
 if (avisos_request_method() !== 'POST') {
-    avisos_redirect('dashboard.php');
+    avisos_redirect('dashboard');
 }
 
 avisos_require_csrf($_POST['csrf_token'] ?? null);
 
-$redirectPath = avisos_sanitize_return_path($_POST['redirect_to'] ?? 'dashboard.php');
+$redirectPath = avisos_sanitize_return_path($_POST['redirect_to'] ?? 'dashboard');
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $titulo = avisos_normalize_string((string) ($_POST['titulo'] ?? ''));
 $tipo = avisos_normalize_string((string) ($_POST['tipo'] ?? ''));

@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/common.php';
 
 if (avisos_is_authenticated()) {
-    avisos_redirect('dashboard.php');
+    avisos_redirect('dashboard');
 }
 
 $error = '';
@@ -22,7 +22,7 @@ if (avisos_request_method() === 'POST') {
     ) {
         avisos_login_user();
         avisos_set_flash('success', 'Sesion iniciada correctamente.');
-        avisos_redirect('dashboard.php');
+        avisos_redirect('dashboard');
     }
 
     $error = 'Credenciales invalidas.';

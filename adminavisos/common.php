@@ -53,11 +53,35 @@ function avisos_base_path(): string
     return $basePath;
 }
 
-function avisos_admin_url(string $path = 'dashboard.php'): string
+function avisos_normalize_admin_path(string $path = 'dashboard'): string
 {
-    $normalizedPath = ltrim($path, '/');
+    $normalizedPath = ltrim(trim($path), '/');
 
-    return avisos_base_path() . '/adminavisos/' . $normalizedPath;
+    if ($normalizedPath === '') {
+        return '';
+    }
+
+    $parsed = parse_url($normalizedPath);
+    if ($parsed === false) {
+        return '';
+    }
+
+    $pathPart = trim((string) ($parsed['path'] ?? ''), '/');
+    if ($pathPart !== '' && str_ends_with($pathPart, '.php')) {
+        $pathPart = substr($pathPart, 0, -4);
+    }
+
+    $query = isset($parsed['query']) && $parsed['query'] !== '' ? '?' . $parsed['query'] : '';
+    $fragment = isset($parsed['fragment']) && $parsed['fragment'] !== '' ? '#' . $parsed['fragment'] : '';
+
+    return $pathPart . $query . $fragment;
+}
+
+function avisos_admin_url(string $path = 'dashboard'): string
+{
+    $normalizedPath = avisos_normalize_admin_path($path);
+
+    return avisos_base_path() . '/adminavisos' . ($normalizedPath === '' ? '/' : '/' . $normalizedPath);
 }
 
 function avisos_redirect(string $path): void
@@ -66,14 +90,24 @@ function avisos_redirect(string $path): void
     exit;
 }
 
-function avisos_sanitize_return_path(?string $path, string $fallback = 'dashboard.php'): string
+function avisos_sanitize_return_path(?string $path, string $fallback = 'dashboard'): string
 {
+    $fallback = avisos_normalize_admin_path($fallback);
+    if ($fallback === '') {
+        $fallback = 'dashboard';
+    }
+
     if (!is_string($path) || trim($path) === '') {
         return $fallback;
     }
 
-    $normalizedPath = ltrim(trim($path), '/');
-    if ($normalizedPath === '' || preg_match('/^[a-z][a-z0-9+\-.]*:/i', $normalizedPath)) {
+    $trimmedPath = ltrim(trim($path), '/');
+    if ($trimmedPath === '' || preg_match('/^[a-z][a-z0-9+\-.]*:/i', $trimmedPath)) {
+        return $fallback;
+    }
+
+    $normalizedPath = avisos_normalize_admin_path($trimmedPath);
+    if ($normalizedPath === '') {
         return $fallback;
     }
 
@@ -83,7 +117,7 @@ function avisos_sanitize_return_path(?string $path, string $fallback = 'dashboar
     }
 
     $pathPart = (string) ($parsed['path'] ?? '');
-    if ($pathPart !== 'dashboard.php') {
+    if ($pathPart !== 'dashboard') {
         return $fallback;
     }
 
@@ -112,7 +146,7 @@ function avisos_login_user(): void
 function avisos_require_auth(): void
 {
     if (!avisos_is_authenticated()) {
-        avisos_redirect('login.php');
+        avisos_redirect('login');
     }
 }
 
