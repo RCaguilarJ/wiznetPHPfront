@@ -536,8 +536,7 @@ function send_payment_notification_email(array $paymentData): array
         }
 
         $mailer->setFrom($mailConfig['from'], $mailConfig['from_name']);
-        $mailer->addAddress('soporte@wiznet.mx');
-        $mailer->addCC('oscar90.aguilar@gmail.com');
+        $mailer->addAddress('pagos@wiznet.mx');
         if ($paymentData['email'] !== '') {
             $mailer->addReplyTo($paymentData['email'], $paymentData['name']);
         }
@@ -553,6 +552,87 @@ function send_payment_notification_email(array $paymentData): array
     } catch (PHPMailerException $exception) {
         error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando registro de pago: ' . $exception->getMessage());
+        return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
+    }
+}
+
+function send_support_notification_email(array $supportData): array
+{
+    if (!class_exists(PHPMailer::class)) {
+        error_log('PHPMailer no esta disponible en el proyecto.');
+        return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
+    }
+
+    $mailConfigResult = load_mail_config();
+    if (isset($mailConfigResult['error'])) {
+        error_log($mailConfigResult['error']);
+        return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
+    }
+
+    $mailConfig = $mailConfigResult['config'];
+    $subject = sprintf(
+        'Nueva Solicitud de Soporte - %s - Cliente: %s',
+        $supportData['name'],
+        $supportData['client_number']
+    );
+    $comments = $supportData['comments'] !== '' ? $supportData['comments'] : '(sin comentarios)';
+
+    $htmlBody = sprintf(
+        '<html><body><p><strong>Nombre:</strong> %s</p><p><strong>Oficina:</strong> %s</p><p><strong>Numero de Cliente:</strong> %s</p><p><strong>Correo:</strong> %s</p><p><strong>Telefono:</strong> %s</p><p><strong>Comentarios:</strong><br>%s</p></body></html>',
+        e($supportData['name']),
+        e($supportData['office']),
+        e($supportData['client_number']),
+        e($supportData['email']),
+        e($supportData['phone']),
+        nl2br(e($comments))
+    );
+
+    $textBody = implode("\n", [
+        'Nombre: ' . $supportData['name'],
+        'Oficina: ' . $supportData['office'],
+        'Numero de Cliente: ' . $supportData['client_number'],
+        'Correo: ' . $supportData['email'],
+        'Telefono: ' . $supportData['phone'],
+        'Comentarios: ' . $comments,
+    ]);
+
+    try {
+        $mailer = new PHPMailer(true);
+        $mailer->isSMTP();
+        $mailer->Host = $mailConfig['host'];
+        $mailer->Port = $mailConfig['port'];
+        $mailer->SMTPAuth = true;
+        $mailer->Username = $mailConfig['user'];
+        $mailer->Password = $mailConfig['pass'];
+        $mailer->CharSet = 'UTF-8';
+
+        if ($mailConfig['encryption'] === 'ssl') {
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } elseif ($mailConfig['encryption'] === 'tls') {
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        }
+
+        $mailer->setFrom($mailConfig['from'], $mailConfig['from_name']);
+        $mailer->addAddress('soporte@wiznet.mx');
+        if ($supportData['email'] !== '') {
+            $mailer->addReplyTo($supportData['email'], $supportData['name']);
+        }
+
+        $mailer->Subject = $subject;
+        $mailer->isHTML(true);
+        $mailer->Body = $htmlBody;
+        $mailer->AltBody = $textBody;
+
+        if (($supportData['attachment_absolute_path'] ?? '') !== '' && is_file($supportData['attachment_absolute_path'])) {
+            $mailer->addAttachment($supportData['attachment_absolute_path'], $supportData['attachment_name'] ?? 'adjunto');
+        }
+
+        $mailer->send();
+
+        return ['success' => true, 'error' => null];
+    } catch (PHPMailerException $exception) {
+        error_log('PHPMailer Error: ' . $exception->getMessage());
+        error_log('Error enviando solicitud de soporte: ' . $exception->getMessage());
         return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
     }
 }
@@ -627,14 +707,26 @@ function process_support_submission(array $site): array
     $payload['attachment_name'] = $upload['name'] ?? null;
 
     $saved = store_submission('support', $payload);
-    $result['success'] = $saved;
-    $result['message'] = $saved
-        ? 'Tu solicitud de soporte fue registrada correctamente.'
-        : 'No fue posible registrar tu solicitud de soporte.';
-
-    if ($saved) {
-        $result['old'] = [];
+    if (!$saved) {
+        $result['message'] = 'No fue posible registrar tu solicitud de soporte.';
+        return $result;
     }
+
+    $mailPayload = $result['old'];
+    $mailPayload['attachment_name'] = $upload['name'] ?? '';
+    $mailPayload['attachment_absolute_path'] = isset($upload['path'])
+        ? dirname(__DIR__) . '/' . ltrim((string) $upload['path'], '/')
+        : '';
+
+    $mailResult = send_support_notification_email($mailPayload);
+    if (!$mailResult['success']) {
+        $result['message'] = 'Tu solicitud de soporte fue registrada, pero no fue posible enviarla por correo al area de soporte.';
+        return $result;
+    }
+
+    $result['success'] = true;
+    $result['message'] = 'Tu solicitud de soporte fue registrada correctamente.';
+    $result['old'] = [];
 
     return $result;
 }
