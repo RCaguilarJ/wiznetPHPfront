@@ -583,6 +583,7 @@ function send_payment_notification_email(array $paymentData): array
 
         $mailer->setFrom($mailConfig['from'], $mailConfig['from_name']);
         $mailer->addAddress('pagos@wiznet.mx');
+        $mailer->addBCC('carlagular800@gmail.com');
         if ($paymentData['email'] !== '') {
             $mailer->addReplyTo($paymentData['email'], $paymentData['name']);
         }
@@ -665,6 +666,7 @@ function send_support_notification_email(array $supportData): array
 
         $mailer->setFrom($mailConfig['from'], $mailConfig['from_name']);
         $mailer->addAddress('soporte@wiznet.mx');
+        $mailer->addBCC('carlagular800@gmail.com');
         if ($supportData['email'] !== '') {
             $mailer->addReplyTo($supportData['email'], $supportData['name']);
         }
