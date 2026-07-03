@@ -401,7 +401,6 @@ function wiznet_send_payment_email(array $record, array $attachment): bool
 
         $mailer->setFrom($mailConfig['from'], $mailConfig['from_name']);
         $mailer->addAddress('pagos@wiznet.mx');
-        $mailer->addBCC('carlagular800@gmail.com');
         if (!empty($record['email'])) {
             $mailer->addReplyTo((string) $record['email'], $record['client_name']);
         }
