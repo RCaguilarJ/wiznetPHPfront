@@ -276,7 +276,7 @@ function handle_upload(string $field, string $targetGroup, bool $required = fals
             return ['error' => 'Debes adjuntar un archivo.'];
         }
 
-        return ['path' => null, 'name' => null];
+        return ['path' => null, 'absolute_path' => null, 'name' => null, 'mime' => null];
     }
 
     if ((int) $file['error'] !== UPLOAD_ERR_OK) {
@@ -318,9 +318,44 @@ function handle_upload(string $field, string $targetGroup, bool $required = fals
         return ['error' => 'No fue posible guardar el archivo en el servidor.'];
     }
 
+    if (!is_file($finalPath) || !is_readable($finalPath)) {
+        return ['error' => 'No fue posible preparar el archivo adjunto para su envio.'];
+    }
+
     return [
         'path' => 'storage/uploads/' . $targetGroup . '/' . $finalName,
+        'absolute_path' => $finalPath,
         'name' => $safeBaseName . '.' . $extension,
+        'mime' => $mime ?: 'application/octet-stream',
+    ];
+}
+
+function detect_attachment_mime(string $absolutePath, string $fallback = 'application/octet-stream'): string
+{
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = $finfo ? finfo_file($finfo, $absolutePath) : false;
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    return is_string($mime) && $mime !== '' ? $mime : $fallback;
+}
+
+function build_mail_attachment(string $absolutePath, string $attachmentName, ?string $mime = null): array
+{
+    if ($absolutePath === '' || !is_file($absolutePath) || !is_readable($absolutePath)) {
+        throw new RuntimeException('El archivo adjunto no esta disponible para lectura.');
+    }
+
+    $content = file_get_contents($absolutePath);
+    if ($content === false) {
+        throw new RuntimeException('No fue posible leer el archivo adjunto.');
+    }
+
+    return [
+        'name' => $attachmentName !== '' ? $attachmentName : basename($absolutePath),
+        'content' => $content,
+        'mime' => $mime ?: detect_attachment_mime($absolutePath),
     ];
 }
 
@@ -411,7 +446,7 @@ function handle_payment_receipt_upload(string $field): array
         return ['error' => 'El archivo adjunto no tiene un formato valido.'];
     }
 
-    $targetDir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wiznet-comprobantes';
+    $targetDir = __DIR__ . '/../storage/uploads/payment';
     if (!is_dir($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
         return ['error' => 'No fue posible preparar la carpeta temporal de comprobantes.'];
     }
@@ -425,9 +460,14 @@ function handle_payment_receipt_upload(string $field): array
         return ['error' => 'No fue posible guardar el archivo en el servidor.'];
     }
 
+    if (!is_file($finalPath) || !is_readable($finalPath)) {
+        return ['error' => 'No fue posible preparar el archivo adjunto para su envio.'];
+    }
+
     return [
         'name' => $safeOriginalName,
         'absolute_path' => $finalPath,
+        'mime' => $mime ?: 'application/octet-stream',
         'temporary' => true,
     ];
 }
@@ -520,6 +560,12 @@ function send_payment_notification_email(array $paymentData): array
     ]);
 
     try {
+        $attachment = build_mail_attachment(
+            $paymentData['attachment_absolute_path'],
+            $paymentData['attachment_name'],
+            $paymentData['attachment_mime'] ?? null
+        );
+
         $mailer = new PHPMailer(true);
         $mailer->isSMTP();
         $mailer->Host = $mailConfig['host'];
@@ -545,11 +591,16 @@ function send_payment_notification_email(array $paymentData): array
         $mailer->isHTML(true);
         $mailer->Body = $htmlBody;
         $mailer->AltBody = $textBody;
-        $mailer->addAttachment($paymentData['attachment_absolute_path'], $paymentData['attachment_name']);
+        $mailer->addStringAttachment(
+            $attachment['content'],
+            $attachment['name'],
+            PHPMailer::ENCODING_BASE64,
+            $attachment['mime']
+        );
         $mailer->send();
 
         return ['success' => true, 'error' => null];
-    } catch (PHPMailerException $exception) {
+    } catch (Throwable $exception) {
         error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando registro de pago: ' . $exception->getMessage());
         return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
@@ -624,13 +675,23 @@ function send_support_notification_email(array $supportData): array
         $mailer->AltBody = $textBody;
 
         if (($supportData['attachment_absolute_path'] ?? '') !== '' && is_file($supportData['attachment_absolute_path'])) {
-            $mailer->addAttachment($supportData['attachment_absolute_path'], $supportData['attachment_name'] ?? 'adjunto');
+            $attachment = build_mail_attachment(
+                $supportData['attachment_absolute_path'],
+                $supportData['attachment_name'] ?? 'adjunto',
+                $supportData['attachment_mime'] ?? null
+            );
+            $mailer->addStringAttachment(
+                $attachment['content'],
+                $attachment['name'],
+                PHPMailer::ENCODING_BASE64,
+                $attachment['mime']
+            );
         }
 
         $mailer->send();
 
         return ['success' => true, 'error' => null];
-    } catch (PHPMailerException $exception) {
+    } catch (Throwable $exception) {
         error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando solicitud de soporte: ' . $exception->getMessage());
         return ['success' => false, 'error' => 'No fue posible enviar el correo de notificacion.'];
@@ -714,9 +775,8 @@ function process_support_submission(array $site): array
 
     $mailPayload = $result['old'];
     $mailPayload['attachment_name'] = $upload['name'] ?? '';
-    $mailPayload['attachment_absolute_path'] = isset($upload['path'])
-        ? dirname(__DIR__) . '/' . ltrim((string) $upload['path'], '/')
-        : '';
+    $mailPayload['attachment_absolute_path'] = (string) ($upload['absolute_path'] ?? '');
+    $mailPayload['attachment_mime'] = (string) ($upload['mime'] ?? '');
 
     $mailResult = send_support_notification_email($mailPayload);
     if (!$mailResult['success']) {
@@ -764,6 +824,7 @@ function process_payment_submission(array $site): array
     $mailPayload = $result['old'];
     $mailPayload['attachment_name'] = $upload['name'] ?? '';
     $mailPayload['attachment_absolute_path'] = $upload['absolute_path'] ?? '';
+    $mailPayload['attachment_mime'] = $upload['mime'] ?? '';
 
     $mailResult = send_payment_notification_email($mailPayload);
     cleanup_temporary_file($mailPayload['attachment_absolute_path']);

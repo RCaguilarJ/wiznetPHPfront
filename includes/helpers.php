@@ -242,12 +242,12 @@ function wiznet_cleanup_file(?string $path): void
 function wiznet_handle_upload(string $fieldName, string $targetDir, array $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'webp']): array
 {
     if (!isset($_FILES[$fieldName]) || !is_array($_FILES[$fieldName])) {
-        return ['path' => null, 'name' => null, 'error' => null];
+        return ['path' => null, 'name' => null, 'mime' => null, 'error' => null];
     }
 
     $file = $_FILES[$fieldName];
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-        return ['path' => null, 'name' => null, 'error' => null];
+        return ['path' => null, 'name' => null, 'mime' => null, 'error' => null];
     }
 
     if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
@@ -301,7 +301,40 @@ function wiznet_handle_upload(string $fieldName, string $targetDir, array $allow
         return ['path' => null, 'name' => null, 'error' => 'No fue posible guardar el archivo subido.'];
     }
 
-    return ['path' => $destination, 'name' => $safeOriginalName, 'error' => null];
+    if (!is_file($destination) || !is_readable($destination)) {
+        return ['path' => null, 'name' => null, 'mime' => null, 'error' => 'No fue posible preparar el archivo adjunto para su envio.'];
+    }
+
+    return ['path' => $destination, 'name' => $safeOriginalName, 'mime' => $mime ?: 'application/octet-stream', 'error' => null];
+}
+
+function wiznet_detect_attachment_mime(string $absolutePath, string $fallback = 'application/octet-stream'): string
+{
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = $finfo ? finfo_file($finfo, $absolutePath) : false;
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    return is_string($mime) && $mime !== '' ? $mime : $fallback;
+}
+
+function wiznet_build_mail_attachment(string $absolutePath, string $attachmentName, ?string $mime = null): array
+{
+    if ($absolutePath === '' || !is_file($absolutePath) || !is_readable($absolutePath)) {
+        throw new RuntimeException('El archivo adjunto no esta disponible para lectura.');
+    }
+
+    $content = file_get_contents($absolutePath);
+    if ($content === false) {
+        throw new RuntimeException('No fue posible leer el archivo adjunto.');
+    }
+
+    return [
+        'name' => $attachmentName !== '' ? $attachmentName : basename($absolutePath),
+        'content' => $content,
+        'mime' => $mime ?: wiznet_detect_attachment_mime($absolutePath),
+    ];
 }
 
 function wiznet_send_payment_email(array $record, array $attachment): bool
@@ -345,6 +378,12 @@ function wiznet_send_payment_email(array $record, array $attachment): bool
     ]);
 
     try {
+        $mailAttachment = wiznet_build_mail_attachment(
+            (string) $attachment['path'],
+            (string) ($attachment['name'] ?? 'comprobante'),
+            $attachment['mime'] ?? null
+        );
+
         $mailer = new \PHPMailer\PHPMailer\PHPMailer(true);
         $mailer->isSMTP();
         $mailer->Host = $mailConfig['host'];
@@ -370,11 +409,16 @@ function wiznet_send_payment_email(array $record, array $attachment): bool
         $mailer->isHTML(true);
         $mailer->Body = $htmlBody;
         $mailer->AltBody = $textBody;
-        $mailer->addAttachment((string) $attachment['path'], (string) ($attachment['name'] ?? 'comprobante'));
+        $mailer->addStringAttachment(
+            $mailAttachment['content'],
+            $mailAttachment['name'],
+            \PHPMailer\PHPMailer\PHPMailer::ENCODING_BASE64,
+            $mailAttachment['mime']
+        );
         $mailer->send();
 
         return true;
-    } catch (\PHPMailer\PHPMailer\Exception $exception) {
+    } catch (\Throwable $exception) {
         error_log('PHPMailer Error: ' . $exception->getMessage());
         error_log('Error enviando registro de pago compartido: ' . $exception->getMessage());
         return false;
@@ -457,7 +501,7 @@ function wiznet_handle_form_submission(array $config, ?mysqli $db): void
         } else {
             $attachment = wiznet_handle_upload(
                 'attachment',
-                rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wiznet-comprobantes',
+                dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'payment',
                 ['jpg', 'jpeg', 'png', 'pdf']
             );
         }
