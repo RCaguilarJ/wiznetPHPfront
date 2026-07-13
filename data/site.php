@@ -100,19 +100,19 @@ return [
     'steps' => [
         [
             'step' => '1',
-            'icon' => 'globe',
+            'icon' => 'wifi',
             'title' => 'Selecciona tu Paquete',
             'copy' => 'Selecciona un paquete de internet de acuerdo a tus necesidades para continuar con el proceso de contratacion.',
         ],
         [
             'step' => '2',
-            'icon' => 'clipboard',
+            'icon' => 'calendar-pin',
             'title' => 'Agenda tu Visita',
             'copy' => 'Contacta a uno de nuestros agentes de servicio para indicar los datos y agendar una visita de nuestro tecnico.',
         ],
         [
             'step' => '3',
-            'icon' => 'smile',
+            'icon' => 'wifi-heart',
             'title' => 'Disfruta tu Servicio',
             'copy' => 'En un periodo maximo de 5 dias habiles contaras con nuestro servicio en el domicilio de contratacion.',
         ],
@@ -185,22 +185,22 @@ return [
     ],
     'support_tips' => [
         [
-            'icon' => 'tools',
+            'icon' => 'refresh',
             'title' => 'Tienes Fallas en tu servicio?',
             'copy' => 'Por favor desconecte sus equipos de la electricidad por un par de minutos y vuelva a conectarlos para refrescar su conexion a Internet.',
         ],
         [
-            'icon' => 'bulb',
+            'icon' => 'plug',
             'title' => 'Tienes alguna luz LED apagada en alguno de tus equipos?',
             'copy' => 'Por favor revisa que tus equipos se encuentren conectados a la energia o que la terminal cuente con el suministro de energia.',
         ],
         [
-            'icon' => 'question',
+            'icon' => 'network',
             'title' => 'Tienes alguna duda de como van los cables de red?',
             'copy' => 'Si realizaste algun cambio de lugar o desconectaste tus equipos de red y no sabes como conectarlos de nuevo por favor comunicate con nosotros para ayudarte.',
         ],
         [
-            'icon' => 'bulb',
+            'icon' => 'headset',
             'title' => 'Ya no encienden las luces LED de mi equipo(s)?',
             'copy' => 'Si ya realizaste las pruebas de los pasos 1,2 y 3 pero no logras tener servicio por favor comunicate con soporte para brindarte el apoyo necesario.',
         ],
