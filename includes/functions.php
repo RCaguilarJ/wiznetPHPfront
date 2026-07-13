@@ -412,6 +412,74 @@ function load_payment_db_config(): array
     return ['config' => $config];
 }
 
+function support_rate_limit_allows(string $ip): bool
+{
+    $dbConfigResult = load_payment_db_config();
+    if (isset($dbConfigResult['error'])) {
+        error_log('Support rate limit: ' . $dbConfigResult['error']);
+        return false;
+    }
+
+    $connectionResult = wiznet_db_connect($dbConfigResult['config']);
+    if ($connectionResult['error'] !== null) {
+        error_log('Support rate limit: ' . $connectionResult['error']);
+        return false;
+    }
+
+    /** @var mysqli $connection */
+    $connection = $connectionResult['connection'];
+
+    if (random_int(1, 100) === 1) {
+        $connection->query("DELETE FROM support_rate_limits WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)");
+    }
+
+    $countStatement = $connection->prepare(
+        'SELECT COUNT(*) FROM support_rate_limits WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE)'
+    );
+    if ($countStatement === false) {
+        error_log('Support rate limit: no fue posible preparar la consulta de conteo.');
+        $connection->close();
+        return false;
+    }
+
+    $countStatement->bind_param('s', $ip);
+    if (!$countStatement->execute()) {
+        error_log('Support rate limit: no fue posible ejecutar la consulta de conteo.');
+        $countStatement->close();
+        $connection->close();
+        return false;
+    }
+
+    $countStatement->bind_result($attemptCount);
+    $countStatement->fetch();
+    $countStatement->close();
+
+    if ((int) $attemptCount >= 3) {
+        $connection->close();
+        return false;
+    }
+
+    $insertStatement = $connection->prepare(
+        'INSERT INTO support_rate_limits (ip_address, created_at) VALUES (?, NOW())'
+    );
+    if ($insertStatement === false) {
+        error_log('Support rate limit: no fue posible preparar el registro del intento.');
+        $connection->close();
+        return false;
+    }
+
+    $insertStatement->bind_param('s', $ip);
+    $inserted = $insertStatement->execute();
+    if (!$inserted) {
+        error_log('Support rate limit: no fue posible registrar el intento.');
+    }
+
+    $insertStatement->close();
+    $connection->close();
+
+    return $inserted;
+}
+
 function handle_payment_receipt_upload(string $field): array
 {
     $file = $_FILES[$field] ?? null;

@@ -4,9 +4,29 @@ declare(strict_types=1);
 
 require __DIR__ . '/includes/bootstrap.php';
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+if (empty($_SESSION['support_csrf'])) {
+    $_SESSION['support_csrf'] = bin2hex(random_bytes(32));
+}
+
 $result = form_result();
 if (is_post() && ($_POST['form_type'] ?? '') === 'support') {
-    $result = process_support_submission($site);
+    $csrfToken = (string) ($_POST['csrf_token'] ?? '');
+    $storedCsrfToken = $_SESSION['support_csrf'] ?? '';
+    $honeypot = trim((string) ($_POST['website'] ?? ''));
+
+    if (!is_string($storedCsrfToken) || $storedCsrfToken === '' || !hash_equals($storedCsrfToken, $csrfToken) || $honeypot !== '') {
+        http_response_code(400);
+        $result['message'] = 'No fue posible procesar la solicitud.';
+    } elseif (!support_rate_limit_allows((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
+        http_response_code(429);
+        $result['message'] = 'Demasiados intentos. Intenta nuevamente más tarde.';
+    } else {
+        $result = process_support_submission($site);
+    }
 }
 
 $pageContext = [
@@ -44,6 +64,8 @@ render_page_header('Soporte', 'Soporte', 'page-hero--network page-hero--support'
         <div class="form-shell form-shell--laptop">
             <form class="site-form site-form--wide" method="post" enctype="multipart/form-data" novalidate>
                 <input type="hidden" name="form_type" value="support">
+                <input type="hidden" name="csrf_token" value="<?= e($_SESSION['support_csrf']) ?>">
+                <input type="text" name="website" value="" tabindex="-1" autocomplete="off" hidden>
 
                 <div class="form-row">
                     <label>
