@@ -109,9 +109,9 @@ render_page_header('REGISTRO DE PAGOS', 'Registro de Pagos', 'page-hero--network
         <div class="process-grid">
             <?php
             $paymentSteps = [
-                ['icon' => 'globe', 'title' => 'Selecciona tu Paquete', 'copy' => $site['steps'][0]['copy'] ?? ''],
-                ['icon' => 'calendar-check', 'title' => 'Agenda tu Visita', 'copy' => $site['steps'][1]['copy'] ?? ''],
-                ['icon' => 'smile', 'title' => 'Disfruta tu Servicio', 'copy' => $site['steps'][2]['copy'] ?? ''],
+                ['icon' => 'wifi', 'title' => 'Selecciona tu Paquete', 'copy' => $site['steps'][0]['copy'] ?? ''],
+                ['icon' => 'calendar-pin', 'title' => 'Agenda tu Visita', 'copy' => $site['steps'][1]['copy'] ?? ''],
+                ['icon' => 'wifi-heart', 'title' => 'Disfruta tu Servicio', 'copy' => $site['steps'][2]['copy'] ?? ''],
             ];
             ?>
             <?php foreach ($paymentSteps as $step): ?>

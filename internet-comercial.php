@@ -28,9 +28,9 @@ render_page_header('Paquetes Internet Comercial', 'Internet Comercial', 'page-he
         <div class="process-grid">
             <?php
             $packageSteps = [
-                ['icon' => 'globe', 'title' => 'Selecciona tu Paquete', 'copy' => $site['steps'][0]['copy'] ?? ''],
-                ['icon' => 'calendar-check', 'title' => 'Agenda tu Visita', 'copy' => $site['steps'][1]['copy'] ?? ''],
-                ['icon' => 'smile', 'title' => 'Disfruta tu Servicio', 'copy' => $site['steps'][2]['copy'] ?? ''],
+                ['icon' => 'wifi', 'title' => 'Selecciona tu Paquete', 'copy' => $site['steps'][0]['copy'] ?? ''],
+                ['icon' => 'calendar-pin', 'title' => 'Agenda tu Visita', 'copy' => $site['steps'][1]['copy'] ?? ''],
+                ['icon' => 'wifi-heart', 'title' => 'Disfruta tu Servicio', 'copy' => $site['steps'][2]['copy'] ?? ''],
             ];
             ?>
             <?php foreach ($packageSteps as $step): ?>

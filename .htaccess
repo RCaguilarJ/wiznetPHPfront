@@ -1,22 +1,5 @@
 RewriteEngine On
 
-RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
-RewriteRule ^inicio/?$ / [R=301,L,NC]
-
-RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
-RewriteRule ^index(?:\.php)?/?$ / [R=301,L,NC]
-
-RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
-RewriteCond %{REQUEST_METHOD} =GET [OR]
-RewriteCond %{REQUEST_METHOD} =HEAD
-RewriteCond %{THE_REQUEST} \s/+(.+?)\.php(?:[\s?]|$) [NC]
-RewriteRule ^(.+)\.php$ /$1 [R=301,L]
-
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^(.+)$ $1.php [L]
